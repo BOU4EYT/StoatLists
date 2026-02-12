@@ -888,7 +888,7 @@
 
         function renderServerCard(server) {
             return `
-                <div class="server-card" data-category="${server.category}">
+                <div class="server-card" data-category="${server.category}" onclick="window.open('${server.invite_url}', '_blank')" style="cursor: pointer;">
                     <div class="server-header">
                         <div class="server-icon">${server.icon}</div>
                         <div class="server-info">

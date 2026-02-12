@@ -866,7 +866,7 @@
             }
         }
 
-        // Update the init function
+        // Initialize the page
         async function init() {
             const trendingGrid = document.getElementById('trendingGrid');
             const popularGrid = document.getElementById('popularGrid');
@@ -920,17 +920,6 @@
                 return (num / 1000).toFixed(1) + 'K';
             }
             return num.toString();
-        }
-
-        function init() {
-            const trendingGrid = document.getElementById('trendingGrid');
-            const popularGrid = document.getElementById('popularGrid');
-
-            const trendingServers = servers.filter(s => s.trending);
-            trendingGrid.innerHTML = trendingServers.map(renderServerCard).join('');
-
-            const popularServers = servers.filter(s => s.popular);
-            popularGrid.innerHTML = popularServers.map(renderServerCard).join('');
         }
 
         document.querySelectorAll('.category-pill').forEach(pill => {

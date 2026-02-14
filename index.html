@@ -14,6 +14,12 @@
             box-sizing: border-box;
         }
 
+        /* Fix for anchor links scrolling behind sticky navbar */
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 100px; /* Navbar height + extra spacing */
+        }
+
         :root {
             --bg-primary: #0f0f14;
             --bg-secondary: #1a1a24;
@@ -286,6 +292,11 @@
             position: relative;
             overflow: hidden;
             animation: fadeInUp 0.6s ease-out backwards;
+        }
+
+        .server-card:focus {
+            outline: 2px solid var(--accent-primary);
+            outline-offset: 2px;
         }
 
         .server-card::before {
@@ -707,7 +718,7 @@
     <section class="server-section" id="trending">
         <div class="section-header">
             <h2>🔥 Trending Now</h2>
-            <a href="#" class="view-all">View All →</a>
+            <a href="#all-servers" class="view-all" onclick="showAllServers('featured')">View All →</a>
         </div>
         <div class="server-grid" id="trendingGrid"></div>
     </section>
@@ -715,9 +726,18 @@
     <section class="server-section">
         <div class="section-header">
             <h2>⭐ Popular Servers</h2>
-            <a href="#" class="view-all">View All →</a>
+            <a href="#all-servers" class="view-all" onclick="showAllServers('all')">View All →</a>
         </div>
         <div class="server-grid" id="popularGrid"></div>
+    </section>
+
+    <!-- All Servers Section (hidden by default) -->
+    <section class="server-section" id="all-servers" style="display: none;">
+        <div class="section-header">
+            <h2 id="all-servers-title">📋 All Servers</h2>
+            <a href="#trending" class="view-all" onclick="hideAllServers()">← Back</a>
+        </div>
+        <div class="server-grid" id="allServersGrid"></div>
     </section>
 
     <footer id="about">
@@ -729,28 +749,28 @@
             <div class="footer-section">
                 <h3>Quick Links</h3>
                 <ul>
-                    <li><a href="#">Browse Servers</a></li>
-                    <li><a href="#">Add Your Server</a></li>
-                    <li><a href="#">API Documentation</a></li>
-                    <li><a href="#">Guidelines</a></li>
+                    <li><a href="#trending">Browse Servers</a></li>
+                    <li><a href="#" onclick="showAddServerModal(); return false;">Add Your Server</a></li>
+                    <li><a href="https://github.com/BOU4EYT/StoatLists" target="_blank">GitHub</a></li>
+                    <li><a href="https://github.com/BOU4EYT/StoatLists/issues" target="_blank">Report Issues</a></li>
                 </ul>
             </div>
             <div class="footer-section">
                 <h3>Community</h3>
                 <ul>
-                    <li><a href="#">Support Server</a></li>
-                    <li><a href="#">Report Issues</a></li>
-                    <li><a href="#">Feature Requests</a></li>
-                    <li><a href="#">Status Page</a></li>
+                    <li><a href="https://stt.gg/Ag6aHYff" target="_blank">Stoat Official</a></li>
+                    <li><a href="https://github.com/BOU4EYT/StoatLists/issues/new" target="_blank">Report Issues</a></li>
+                    <li><a href="https://github.com/BOU4EYT/StoatLists/issues/new" target="_blank">Feature Requests</a></li>
+                    <li><a href="https://stoat.chat" target="_blank">Stoat Website</a></li>
                 </ul>
             </div>
             <div class="footer-section">
-                <h3>Legal</h3>
+                <h3>Legal & Info</h3>
                 <ul>
-                    <li><a href="#">Terms of Service</a></li>
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Cookie Policy</a></li>
-                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="https://stoat.chat/legal/terms" target="_blank">Terms of Service</a></li>
+                    <li><a href="https://stoat.chat/legal/privacy" target="_blank">Privacy Policy</a></li>
+                    <li><a href="https://stt.gg/Ag6aHYff">Contact Us</a></li>
+                    <li><a href="https://github.com/BOU4EYT/StoatLists" target="_blank">Source Code</a></li>
                 </ul>
             </div>
         </div>
@@ -773,9 +793,9 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="serverIcon">Server Icon (Emoji) *</label>
-                    <input type="text" id="serverIcon" required maxlength="2" placeholder="🎮">
-                    <small>Enter a single emoji to represent your server</small>
+                    <label for="serverIcon">Server Icon *</label>
+                    <input type="file" id="serverIcon" required maxlength="1" name="servericon" accept="image/png, image/jpeg">
+                    <small>Rep your server icon!</small>
                 </div>
                 
                 <div class="form-group">
@@ -812,20 +832,11 @@
                 
                 <div class="preview-section">
                     <h3>Preview</h3>
-                    <div class="server-card" id="previewCard">
+                    <div class="server-card" id="previewCard" style="cursor: default;" tabindex="-1">
                         <div class="server-header">
                             <div class="server-icon" id="previewIcon">🎮</div>
                             <div class="server-info">
                                 <div class="server-name" id="previewName">Server Name</div>
-                                <div class="server-stats">
-                                    <span class="stat">
-                                        <span class="online-dot"></span>
-                                        0 online
-                                    </span>
-                                    <span class="stat">
-                                        👥 0 members
-                                    </span>
-                                </div>
                             </div>
                         </div>
                         <div class="server-description" id="previewDesc">Your description will appear here...</div>
@@ -842,71 +853,52 @@
     </div>
 
     <script>
-        // Supabase configuration
+        // Supabase Configuration
         const SUPABASE_URL = 'https://yuxmqthptkeguwwttxcq.supabase.co'; // e.g., https://xxxxx.supabase.co
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1eG1xdGhwdGtlZ3V3d3R0eGNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MjMwMjksImV4cCI6MjA4NjQ5OTAyOX0.KIX9kiuxty0sSnLwonowfCMC11Niy-eHLSk237chca8';
-
+        
+        // Initialize empty servers array - will be filled from Supabase
+        let servers = [];
+        
         // Fetch servers from Supabase
         async function fetchServers() {
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/servers?approved=eq.true&order=created_at.desc`, {
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            // If Supabase is configured, fetch real data
+            if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
+                try {
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/servers?approved=eq.true&order=created_at.desc`, {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data;
                     }
-                });
-                
-                if (!response.ok) throw new Error('Failed to fetch servers');
-                
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error('Error fetching servers:', error);
-                return [];
+                } catch (error) {
+                    console.error('Error fetching servers:', error);
+                }
             }
-        }
-
-        // Initialize the page
-        async function init() {
-            const trendingGrid = document.getElementById('trendingGrid');
-            const popularGrid = document.getElementById('popularGrid');
-
-            // Fetch servers from API
-            const servers = await fetchServers();
             
-            // Filter trending (featured servers)
-            const trendingServers = servers.filter(s => s.featured);
-            trendingGrid.innerHTML = trendingServers.map(renderServerCard).join('');
-
-            // Filter popular (recently added, high member count)
-            const popularServers = servers
-                .filter(s => !s.featured)
-                .sort((a, b) => b.members - a.members)
-                .slice(0, 6);
-            popularGrid.innerHTML = popularServers.map(renderServerCard).join('');
+            // Return empty array if no servers or Supabase not configured
+            return [];
         }
 
         function renderServerCard(server) {
+            // Make card clickable and hide member count
+            const inviteUrl = server.invite_url || '#';
             return `
-                <div class="server-card" data-category="${server.category}" onclick="window.open('${server.invite_url}', '_blank')" style="cursor: pointer;">
+                <div class="server-card" data-category="${server.category}" onclick="window.open('${inviteUrl}', '_blank')" onkeypress="if(event.key === 'Enter') window.open('${inviteUrl}', '_blank')" role="button" tabindex="0" aria-label="Visit ${server.name} server">
                     <div class="server-header">
-                        <div class="server-icon">${server.icon}</div>
+                        <div class="server-icon" aria-hidden="true">${server.icon}</div>
                         <div class="server-info">
                             <div class="server-name">${server.name}</div>
-                            <div class="server-stats">
-                                <span class="stat">
-                                    <span class="online-dot"></span>
-                                    ${formatNumber(server.online)} online
-                                </span>
-                                <span class="stat">
-                                    👥 ${formatNumber(server.members)} members
-                                </span>
-                            </div>
                         </div>
                     </div>
                     <div class="server-description">${server.description}</div>
-                    <div class="server-tags">
-                        ${server.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    <div class="server-tags" role="list" aria-label="Server tags">
+                        ${server.tags ? server.tags.map(tag => `<span class="tag" role="listitem">${tag}</span>`).join('') : ''}
                     </div>
                 </div>
             `;
@@ -920,6 +912,81 @@
                 return (num / 1000).toFixed(1) + 'K';
             }
             return num.toString();
+        }
+
+        async function init() {
+            const trendingGrid = document.getElementById('trendingGrid');
+            const popularGrid = document.getElementById('popularGrid');
+
+            // Show loading state
+            trendingGrid.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem; grid-column: 1 / -1;">Loading servers...</p>';
+            popularGrid.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem; grid-column: 1 / -1;">Loading servers...</p>';
+
+            // Fetch servers from Supabase
+            servers = await fetchServers();
+
+            // Show message if no servers
+            if (servers.length === 0) {
+                trendingGrid.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem; grid-column: 1 / -1;">No servers listed yet. Be the first to add one!</p>';
+                popularGrid.innerHTML = '';
+                return;
+            }
+
+            // Render trending servers (featured)
+            const trendingServers = servers.filter(s => s.featured);
+            if (trendingServers.length > 0) {
+                trendingGrid.innerHTML = trendingServers.slice(0, 6).map(renderServerCard).join('');
+            } else {
+                trendingGrid.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem; grid-column: 1 / -1;">No trending servers yet.</p>';
+            }
+
+            // Render popular servers (by created date)
+            const popularServers = servers
+                .filter(s => !s.featured)
+                .slice(0, 6);
+            
+            if (popularServers.length > 0) {
+                popularGrid.innerHTML = popularServers.map(renderServerCard).join('');
+            } else {
+                popularGrid.innerHTML = '';
+            }
+        }
+
+        // Show all servers section
+        function showAllServers(type) {
+            const allServersSection = document.getElementById('all-servers');
+            const allServersGrid = document.getElementById('allServersGrid');
+            const allServersTitle = document.getElementById('all-servers-title');
+            
+            // Hide trending and popular sections
+            document.getElementById('trending').style.display = 'none';
+            document.querySelectorAll('.server-section')[2].style.display = 'none'; // Popular section
+            
+            // Show all servers section
+            allServersSection.style.display = 'block';
+            
+            // Render servers based on type
+            let serversToShow = [];
+            if (type === 'featured') {
+                serversToShow = servers.filter(s => s.featured);
+                allServersTitle.textContent = '🔥 All Trending Servers';
+            } else {
+                serversToShow = servers;
+                allServersTitle.textContent = '📋 All Servers';
+            }
+            
+            if (serversToShow.length > 0) {
+                allServersGrid.innerHTML = serversToShow.map(renderServerCard).join('');
+            } else {
+                allServersGrid.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem; grid-column: 1 / -1;">No servers found.</p>';
+            }
+        }
+
+        // Hide all servers section and show main sections
+        function hideAllServers() {
+            document.getElementById('all-servers').style.display = 'none';
+            document.getElementById('trending').style.display = 'block';
+            document.querySelectorAll('.server-section')[2].style.display = 'block'; // Popular section
         }
 
         document.querySelectorAll('.category-pill').forEach(pill => {
@@ -1007,7 +1074,7 @@
             }
         }
 
-        async function handleSubmitServer(event) {
+        function handleSubmitServer(event) {
             event.preventDefault();
 
             const formData = {
@@ -1016,34 +1083,16 @@
                 description: document.getElementById('serverDescription').value,
                 category: document.getElementById('serverCategory').value,
                 tags: document.getElementById('serverTags').value.split(',').map(t => t.trim()).filter(t => t).slice(0, 5),
-                invite_url: document.getElementById('inviteUrl').value,
-                approved: false, // Needs approval
-                featured: false,
-                verified: false,
-                members: 0,
-                online: 0
+                inviteUrl: document.getElementById('inviteUrl').value
             };
 
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/servers`, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=minimal'
-                    },
-                    body: JSON.stringify(formData)
-                });
+            
+            console.log('Server submission:', formData);
 
-                if (!response.ok) throw new Error('Submission failed');
+            // For now, show a success message
+            alert(`✅ Server "${formData.name}" submitted successfully!\n\nIn production, this will be sent to your API for review. Once approved by moderators, it will appear on StoatList.`);
 
-                alert(`✅ Server "${formData.name}" submitted successfully!\n\nYour server is pending approval. Once approved by moderators, it will appear on StoatList!`);
-                closeAddServerModal();
-                
-            } catch (error) {
-                alert(`❌ Error submitting server: ${error.message}\n\nPlease try again later.`);
-            }
+            closeAddServerModal();
         }
 
         init();

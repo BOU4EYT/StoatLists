@@ -615,6 +615,106 @@
             border-top: 1px solid var(--border);
         }
 
+        /* Server Detail Modal Styles */
+        .server-detail-content {
+            padding: 0;
+        }
+
+        .detail-header {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            margin: 2rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(78, 205, 196, 0.1));
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .detail-icon {
+            font-size: 4.5rem;
+            width: 90px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 20px;
+            flex-shrink: 0;
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+        }
+
+        .detail-info {
+            flex: 1;
+        }
+
+        .detail-info h3 {
+            font-family: 'Righteous', cursive;
+            font-size: 2rem;
+            color: var(--text-primary);
+            margin: 0 0 0.8rem 0;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 0.5rem 1.2rem;
+            background: rgba(255, 107, 53, 0.15);
+            color: var(--accent-primary);
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: capitalize;
+            border: 1px solid rgba(255, 107, 53, 0.4);
+        }
+
+        .detail-section {
+            margin: 0 2rem 2rem 2rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .detail-section h4 {
+            color: var(--accent-primary);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .detail-section p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .detail-section .server-tags {
+            margin: 0;
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            padding: 2rem;
+            border-top: 1px solid var(--border);
+            background: var(--bg-secondary);
+            border-radius: 0 0 16px 16px;
+        }
+
+        .detail-actions .btn-primary {
+            font-size: 1.05rem;
+            padding: 1rem 2.5rem;
+        }
+
+        .detail-actions .btn-secondary {
+            font-size: 1.05rem;
+            padding: 1rem 2.5rem;
+        }
+
         .btn-secondary {
             background: transparent;
             color: var(--text-secondary);
@@ -852,6 +952,45 @@
         </div>
     </div>
 
+    <!-- Server Detail Modal -->
+    <div id="serverDetailModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2 id="detailServerName">Server Details</h2>
+                <span class="close" onclick="closeServerDetailModal()">&times;</span>
+            </div>
+            
+            <div class="server-detail-content">
+                <div class="detail-header">
+                    <div class="detail-icon" id="detailServerIcon">🎮</div>
+                    <div class="detail-info">
+                        <h3 id="detailServerNameLarge">Server Name</h3>
+                        <div class="detail-category">
+                            <span class="category-badge" id="detailCategory">Category</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>📝 About This Server</h4>
+                    <p id="detailDescription">Server description will appear here...</p>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>🏷️ Tags</h4>
+                    <div class="server-tags" id="detailTags"></div>
+                </div>
+                
+                <div class="detail-actions">
+                    <button class="btn-secondary" onclick="closeServerDetailModal()">Cancel</button>
+                    <button class="btn-primary" id="joinServerBtn" onclick="joinServer()">
+                        Join Server →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Supabase Configuration
         const SUPABASE_URL = 'https://yuxmqthptkeguwwttxcq.supabase.co'; // e.g., https://xxxxx.supabase.co
@@ -886,10 +1025,13 @@
         }
 
         function renderServerCard(server) {
-            // Make card clickable and hide member count
-            const inviteUrl = server.invite_url || '#';
+            // Make card clickable - shows detail modal before joining
+            const serverJson = JSON.stringify(server).replace(/'/g, "\\'");
             return `
-                <div class="server-card" data-category="${server.category}" onclick="window.open('${inviteUrl}', '_blank')" onkeypress="if(event.key === 'Enter') window.open('${inviteUrl}', '_blank')" role="button" tabindex="0" aria-label="Visit ${server.name} server">
+                <div class="server-card" data-category="${server.category}" 
+                     onclick="showServerDetail(JSON.parse('${serverJson}'))" 
+                     onkeypress="if(event.key === 'Enter') showServerDetail(JSON.parse('${serverJson}'))" 
+                     role="button" tabindex="0" aria-label="View details for ${server.name} server">
                     <div class="server-header">
                         <div class="server-icon" aria-hidden="true">${server.icon}</div>
                         <div class="server-info">
@@ -1034,11 +1176,61 @@
             updatePreview();
         }
 
-        // Close modal when clicking outside
+        // Server Detail Modal Functions
+        let currentServer = null;
+
+        function showServerDetail(server) {
+            currentServer = server;
+            
+            // Populate modal with server data
+            document.getElementById('detailServerName').textContent = server.name;
+            document.getElementById('detailServerNameLarge').textContent = server.name;
+            document.getElementById('detailServerIcon').textContent = server.icon || '🎮';
+            document.getElementById('detailDescription').textContent = server.description || 'No description available.';
+            document.getElementById('detailCategory').textContent = server.category || 'community';
+            
+            // Populate tags
+            const tagsContainer = document.getElementById('detailTags');
+            if (server.tags && server.tags.length > 0) {
+                tagsContainer.innerHTML = server.tags.map(tag => 
+                    `<span class="tag">${tag}</span>`
+                ).join('');
+            } else {
+                tagsContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 0.9rem;">No tags available</span>';
+            }
+            
+            // Show modal with animation
+            const modal = document.getElementById('serverDetailModal');
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeServerDetailModal() {
+            const modal = document.getElementById('serverDetailModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+            currentServer = null;
+        }
+
+        function joinServer() {
+            if (currentServer && currentServer.invite_url) {
+                window.open(currentServer.invite_url, '_blank');
+                closeServerDetailModal();
+            } else {
+                alert('No invite URL available for this server.');
+            }
+        }
+
+        // Close modals when clicking outside
         window.onclick = function(event) {
-            const modal = document.getElementById('addServerModal');
-            if (event.target === modal) {
+            const addModal = document.getElementById('addServerModal');
+            const detailModal = document.getElementById('serverDetailModal');
+            
+            if (event.target === addModal) {
                 closeAddServerModal();
+            }
+            if (event.target === detailModal) {
+                closeServerDetailModal();
             }
         }
 

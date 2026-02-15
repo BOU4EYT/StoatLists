@@ -1026,11 +1026,12 @@
 
         function renderServerCard(server) {
             // Make card clickable - shows detail modal before joining
-            const serverJson = JSON.stringify(server).replace(/'/g, "\\'");
+            // Use owner_id as unique identifier to look up server
+            const serverId = server.owner_id || server.id || Math.random().toString(36);
             return `
-                <div class="server-card" data-category="${server.category}" 
-                     onclick="showServerDetail(JSON.parse('${serverJson}'))" 
-                     onkeypress="if(event.key === 'Enter') showServerDetail(JSON.parse('${serverJson}'))" 
+                <div class="server-card" data-category="${server.category}" data-server-id="${serverId}"
+                     onclick="showServerDetailById('${serverId}')" 
+                     onkeypress="if(event.key === 'Enter') showServerDetailById('${serverId}')" 
                      role="button" tabindex="0" aria-label="View details for ${server.name} server">
                     <div class="server-header">
                         <div class="server-icon" aria-hidden="true">${server.icon}</div>
@@ -1178,6 +1179,16 @@
 
         // Server Detail Modal Functions
         let currentServer = null;
+
+        function showServerDetailById(serverId) {
+            // Find server by owner_id or id
+            const server = servers.find(s => s.owner_id === serverId || s.id === serverId);
+            if (server) {
+                showServerDetail(server);
+            } else {
+                console.error('Server not found:', serverId);
+            }
+        }
 
         function showServerDetail(server) {
             currentServer = server;

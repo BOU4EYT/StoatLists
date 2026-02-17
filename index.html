@@ -12,7 +12,6 @@
     <meta name="author" content="StoatList">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://bou4eyt.github.io/StoatLists/">
-    <meta name="google-site-verification" content="HYQ-ihYXs8PRzXAa3NfjE3j8vgh_HEFRWZJesSn0pGQ" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
@@ -1321,25 +1320,64 @@
             }
         }
 
-        function handleSubmitServer(event) {
+        async function handleSubmitServer(event) {
             event.preventDefault();
 
-            const formData = {
-                name: document.getElementById('serverName').value,
-                icon: document.getElementById('serverIcon').value,
-                description: document.getElementById('serverDescription').value,
-                category: document.getElementById('serverCategory').value,
-                tags: document.getElementById('serverTags').value.split(',').map(t => t.trim()).filter(t => t).slice(0, 5),
-                inviteUrl: document.getElementById('inviteUrl').value
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            submitBtn.textContent = 'Submitting...';
+            submitBtn.disabled = true;
+
+            const name = document.getElementById('serverName').value.trim();
+            const description = document.getElementById('serverDescription').value.trim();
+            const category = document.getElementById('serverCategory').value;
+            const tagsRaw = document.getElementById('serverTags').value;
+            const invite_url = document.getElementById('inviteUrl').value.trim();
+            const tags = tagsRaw.split(',').map(t => t.trim()).filter(t => t).slice(0, 5);
+
+            // Icon is a file upload - use a default emoji for now based on category
+            const categoryIcons = {
+                gaming: '🎮', art: '🎨', tech: '💻',
+                music: '🎵', education: '📚', community: '💬', entertainment: '🎬'
             };
+            const icon = categoryIcons[category] || '🦦';
 
-            
-            console.log('Server submission:', formData);
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/servers`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({
+                        name,
+                        icon,
+                        description,
+                        category,
+                        tags,
+                        invite_url,
+                        approved: true
+                    })
+                });
 
-            // For now, show a success message
-            alert(`✅ Server "${formData.name}" submitted successfully!\n\nIn production, this will be sent to your API for review. Once approved by moderators, it will appear on StoatList.`);
-
-            closeAddServerModal();
+                if (response.ok) {
+                    alert(`✅ "${name}" has been listed on StoatList!\n\nIt will appear on the site shortly.`);
+                    closeAddServerModal();
+                    // Refresh the server list
+                    init();
+                } else {
+                    const error = await response.json();
+                    console.error('Supabase error:', error);
+                    alert(`❌ Something went wrong: ${error.message || 'Unknown error'}\n\nPlease try again or check your details.`);
+                }
+            } catch (err) {
+                console.error('Network error:', err);
+                alert('❌ Network error - please check your connection and try again.');
+            } finally {
+                submitBtn.textContent = 'Submit Server';
+                submitBtn.disabled = false;
+            }
         }
 
         init();

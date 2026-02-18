@@ -936,9 +936,9 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="serverIcon">Server Icon *</label>
-                    <input type="file" id="serverIcon" required maxlength="1" name="servericon" accept="image/png, image/jpeg">
-                    <small>Rep your server icon!</small>
+                    <label for="serverIcon">Server Icon</label>
+                    <input type="file" id="serverIcon" name="servericon" accept="image/png, image/jpeg, image/jpg, image/webp">
+                    <small>Upload PNG, JPG, or WebP (max 2MB, 512x512px recommended). If no image, we'll use a category emoji!</small>
                 </div>
                 
                 <div class="form-group">
@@ -1067,17 +1067,32 @@
             return [];
         }
 
+        // Helper function to render server icon (emoji or image)
+        function renderIcon(icon) {
+            if (!icon) return '🦦'; // Default fallback
+            
+            // Check if it's a URL (uploaded image)
+            if (icon.startsWith('http://') || icon.startsWith('https://')) {
+                return `<img src="${icon}" alt="Server icon" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">`;
+            }
+            
+            // Otherwise it's an emoji
+            return icon;
+        }
+
         function renderServerCard(server) {
             // Make card clickable - shows detail modal before joining
             // Use owner_id as unique identifier to look up server
             const serverId = server.owner_id || server.id || Math.random().toString(36);
+            const iconHtml = renderIcon(server.icon);
+            
             return `
                 <div class="server-card" data-category="${server.category}" data-server-id="${serverId}"
                      onclick="showServerDetailById('${serverId}')" 
                      onkeypress="if(event.key === 'Enter') showServerDetailById('${serverId}')" 
                      role="button" tabindex="0" aria-label="View details for ${server.name} server">
                     <div class="server-header">
-                        <div class="server-icon" aria-hidden="true">${server.icon}</div>
+                        <div class="server-icon" aria-hidden="true">${iconHtml}</div>
                         <div class="server-info">
                             <div class="server-name">${server.name}</div>
                         </div>
@@ -1239,7 +1254,12 @@
             // Populate modal with server data
             document.getElementById('detailServerName').textContent = server.name;
             document.getElementById('detailServerNameLarge').textContent = server.name;
-            document.getElementById('detailServerIcon').textContent = server.icon || '🎮';
+            
+            // Handle icon (emoji or image)
+            const iconElement = document.getElementById('detailServerIcon');
+            const iconHtml = renderIcon(server.icon || '🎮');
+            iconElement.innerHTML = iconHtml;
+            
             document.getElementById('detailDescription').textContent = server.description || 'No description available.';
             document.getElementById('detailCategory').textContent = server.category || 'community';
             
@@ -1324,24 +1344,82 @@
             event.preventDefault();
 
             const submitBtn = event.target.querySelector('button[type="submit"]');
-            submitBtn.textContent = 'Submitting...';
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Uploading...';
             submitBtn.disabled = true;
 
-            const name = document.getElementById('serverName').value.trim();
-            const description = document.getElementById('serverDescription').value.trim();
-            const category = document.getElementById('serverCategory').value;
-            const tagsRaw = document.getElementById('serverTags').value;
-            const invite_url = document.getElementById('inviteUrl').value.trim();
-            const tags = tagsRaw.split(',').map(t => t.trim()).filter(t => t).slice(0, 5);
-
-            // Icon is a file upload - use a default emoji for now based on category
-            const categoryIcons = {
-                gaming: '🎮', art: '🎨', tech: '💻',
-                music: '🎵', education: '📚', community: '💬', entertainment: '🎬'
-            };
-            const icon = categoryIcons[category] || '🦦';
-
             try {
+                const name = document.getElementById('serverName').value.trim();
+                const description = document.getElementById('serverDescription').value.trim();
+                const category = document.getElementById('serverCategory').value;
+                const tagsRaw = document.getElementById('serverTags').value;
+                const invite_url = document.getElementById('inviteUrl').value.trim();
+                const tags = tagsRaw.split(',').map(t => t.trim()).filter(t => t).slice(0, 5);
+                const iconFile = document.getElementById('serverIcon').files[0];
+
+                let icon = '';
+
+                // Upload icon if provided
+                if (iconFile) {
+                    // Validate file
+                    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+                    const maxSize = 2 * 1024 * 1024; // 2MB
+
+                    if (!validTypes.includes(iconFile.type)) {
+                        alert('❌ Invalid file type!\n\nPlease use PNG, JPG, or WebP format.');
+                        return;
+                    }
+
+                    if (iconFile.size > maxSize) {
+                        alert('❌ File too large!\n\nPlease use an image under 2MB.');
+                        return;
+                    }
+
+                    submitBtn.textContent = 'Uploading icon...';
+
+                    // Generate unique filename
+                    const timestamp = Date.now();
+                    const random = Math.random().toString(36).substring(7);
+                    const ext = iconFile.name.split('.').pop();
+                    const filename = `public/${timestamp}-${random}.${ext}`;
+
+                    // Upload to Supabase Storage
+                    const formData = new FormData();
+                    formData.append('file', iconFile);
+
+                    const uploadResponse = await fetch(
+                        `${SUPABASE_URL}/storage/v1/object/server-icons/${filename}`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'apikey': SUPABASE_ANON_KEY,
+                                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            },
+                            body: iconFile
+                        }
+                    );
+
+                    if (!uploadResponse.ok) {
+                        const error = await uploadResponse.json();
+                        console.error('Storage error:', error);
+                        alert('❌ Failed to upload icon!\n\nPlease try again or contact support.');
+                        return;
+                    }
+
+                    // Get public URL
+                    icon = `${SUPABASE_URL}/storage/v1/object/public/server-icons/${filename}`;
+                } else {
+                    // Use emoji fallback if no file uploaded
+                    const categoryIcons = {
+                        gaming: '🎮', art: '🎨', tech: '💻',
+                        music: '🎵', education: '📚', community: '💬', entertainment: '🎬'
+                    };
+                    icon = categoryIcons[category] || '🦦';
+                }
+
+                // Submit server data
+                submitBtn.textContent = 'Submitting...';
+
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/servers`, {
                     method: 'POST',
                     headers: {
@@ -1364,18 +1442,28 @@
                 if (response.ok) {
                     alert(`✅ "${name}" has been listed on StoatList!\n\nIt will appear on the site shortly.`);
                     closeAddServerModal();
-                    // Refresh the server list
                     init();
                 } else {
                     const error = await response.json();
                     console.error('Supabase error:', error);
-                    alert(`❌ Something went wrong: ${error.message || 'Unknown error'}\n\nPlease try again or check your details.`);
+                    const detail = error.message || error.details || '';
+                    let msg;
+                    if (detail.includes('description')) {
+                        msg = '❌ Description is too short!\n\nPlease write a longer description so people know what your server is about.';
+                    } else if (detail.includes('invite_url') || detail.includes('url')) {
+                        msg = '❌ Invite URL looks invalid.\n\nMake sure it starts with https://';
+                    } else if (detail.includes('duplicate') || detail.includes('unique')) {
+                        msg = '❌ This server is already listed on StoatList!';
+                    } else {
+                        msg = '❌ ' + (detail || 'Something went wrong. Please check your details and try again.');
+                    }
+                    alert(msg);
                 }
             } catch (err) {
-                console.error('Network error:', err);
-                alert('❌ Network error - please check your connection and try again.');
+                console.error('Error:', err);
+                alert('❌ Something went wrong!\n\nPlease try again.');
             } finally {
-                submitBtn.textContent = 'Submit Server';
+                submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
             }
         }

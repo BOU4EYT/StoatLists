@@ -1456,17 +1456,52 @@
             } catch (_) {}
             currentUser = null;
             authToken = null;
+            localStorage.removeItem('sl_token');
+            localStorage.removeItem('sl_user');
             toggleUserDropdown(true);
             document.getElementById('authControls').style.display = '';
             document.getElementById('userMenu').style.display = 'none';
         }
 
         function onAuthSuccess() {
+            // Persist session
+            localStorage.setItem('sl_token', authToken);
+            localStorage.setItem('sl_user', JSON.stringify(currentUser));
+
             document.getElementById('authControls').style.display = 'none';
             document.getElementById('userMenu').style.display = '';
             const email = currentUser.email || '';
             document.getElementById('userDisplayName').textContent = email.split('@')[0];
             document.getElementById('userDropdownEmail').textContent = email;
+        }
+
+        async function restoreSession() {
+            const savedToken = localStorage.getItem('sl_token');
+            const savedUser = localStorage.getItem('sl_user');
+            if (!savedToken || !savedUser) return;
+
+            // Verify token is still valid with Supabase
+            try {
+                const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${savedToken}`
+                    }
+                });
+                if (res.ok) {
+                    authToken = savedToken;
+                    currentUser = await res.json();
+                    localStorage.setItem('sl_user', JSON.stringify(currentUser)); // refresh stored user
+                    onAuthSuccess();
+                } else {
+                    // Token expired, clear storage
+                    localStorage.removeItem('sl_token');
+                    localStorage.removeItem('sl_user');
+                }
+            } catch (_) {
+                localStorage.removeItem('sl_token');
+                localStorage.removeItem('sl_user');
+            }
         }
 
         function toggleUserDropdown(forceClose = false) {
@@ -1486,9 +1521,12 @@
 
         function showEditServerModal() {
             if (!currentServer) return;
+            const serverToEdit = currentServer; // save ref before closeServerDetailModal nulls it
             closeServerDetailModal();
 
-            document.getElementById('editServerId').value = currentServer.id;
+            document.getElementById('editServerId').value = serverToEdit.id;
+            // re-point currentServer so handleEditServer can read it for the icon fallback
+            currentServer = serverToEdit;
             document.getElementById('editServerName').value = currentServer.name || '';
             document.getElementById('editServerDescription').value = currentServer.description || '';
             document.getElementById('editDescCount').textContent = (currentServer.description || '').length;
@@ -2046,7 +2084,7 @@
             }
         }
 
-        init();
+        restoreSession().then(() => init());
     </script>
 </body>
 </html>

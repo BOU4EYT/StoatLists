@@ -779,6 +779,183 @@
             padding: 2rem;
         }
 
+        /* Auth & User Menu Styles */
+        .nav-auth {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            padding: 0.8rem 1.4rem;
+            border-radius: 50px;
+            border: 2px solid var(--border);
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Work Sans', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-ghost:hover {
+            color: var(--text-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-avatar-btn {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 0.6rem 1.2rem;
+            font-family: 'Work Sans', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .user-avatar-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.5rem);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            min-width: 200px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            z-index: 200;
+            overflow: hidden;
+        }
+
+        .user-dropdown.open {
+            display: block;
+            animation: fadeInUp 0.2s ease-out;
+        }
+
+        .dropdown-email {
+            padding: 0.8rem 1rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'Work Sans', sans-serif;
+            font-size: 0.95rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .dropdown-item.danger:hover {
+            color: #ff4444;
+        }
+
+        /* Auth Modal Tabs */
+        .auth-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: 'Work Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+        }
+
+        .auth-tab.active {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        .auth-panel {
+            display: none;
+            padding: 2rem;
+        }
+
+        .auth-panel.active {
+            display: block;
+        }
+
+        .auth-error {
+            background: rgba(255, 68, 68, 0.1);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .auth-success {
+            background: rgba(67, 181, 129, 0.1);
+            color: #43b581;
+            border: 1px solid rgba(67, 181, 129, 0.3);
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        /* Edit button in detail modal */
+        .btn-edit {
+            background: transparent;
+            color: var(--accent-tertiary);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            border: 2px solid var(--accent-tertiary);
+            font-weight: 600;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Work Sans', sans-serif;
+        }
+
+        .btn-edit:hover {
+            background: rgba(78, 205, 196, 0.1);
+        }
+
         @media (max-width: 768px) {
 
             .hero h1 {
@@ -830,7 +1007,23 @@
                 <a href="#trending">Trending</a>
                 <a href="#categories">Categories</a>
                 <a href="#about">About</a>
-                <button class="btn-primary" onclick="showAddServerModal()">+ Add Server</button>
+                <div class="nav-auth">
+                    <button class="btn-primary" onclick="showAddServerModal()">+ Add Server</button>
+                    <div id="authControls">
+                        <button class="btn-ghost" onclick="showAuthModal()">Login</button>
+                    </div>
+                    <div class="user-menu" id="userMenu" style="display:none;">
+                        <button class="user-avatar-btn" onclick="toggleUserDropdown()">
+                            <span>👤</span>
+                            <span id="userDisplayName">User</span>
+                            <span>▾</span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="dropdown-email" id="userDropdownEmail"></div>
+                            <button class="dropdown-item danger" onclick="signOut()">🚪 Sign Out</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
@@ -1026,6 +1219,7 @@
                 
                 <div class="detail-actions">
                     <button class="btn-secondary" onclick="closeServerDetailModal()">Cancel</button>
+                    <button class="btn-edit" id="editServerBtn" onclick="showEditServerModal()" style="display:none;">✏️ Edit</button>
                     <button class="btn-primary" id="joinServerBtn" onclick="joinServer()">
                         Join Server →
                     </button>
@@ -1034,13 +1228,375 @@
         </div>
     </div>
 
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content" style="max-width: 460px;">
+            <div class="modal-header">
+                <h2>Welcome to StoatList</h2>
+                <span class="close" onclick="closeAuthModal()">&times;</span>
+            </div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+                <button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+            </div>
+
+            <!-- Login Panel -->
+            <div class="auth-panel active" id="loginPanel">
+                <div class="auth-error" id="loginError"></div>
+                <div class="auth-success" id="loginSuccess"></div>
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••">
+                </div>
+                <button class="btn-primary" style="width:100%;" id="loginBtn" onclick="signIn()">Login</button>
+            </div>
+
+            <!-- Sign Up Panel -->
+            <div class="auth-panel" id="signupPanel">
+                <div class="auth-error" id="signupError"></div>
+                <div class="auth-success" id="signupSuccess"></div>
+                <div class="form-group">
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" placeholder="At least 6 characters">
+                </div>
+                <button class="btn-primary" style="width:100%;" id="signupBtn" onclick="signUp()">Create Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Server Modal -->
+    <div id="editServerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✏️ Edit Server</h2>
+                <span class="close" onclick="closeEditServerModal()">&times;</span>
+            </div>
+            <form id="editServerForm" onsubmit="handleEditServer(event)">
+                <input type="hidden" id="editServerId">
+                <div class="form-group">
+                    <label for="editServerName">Server Name *</label>
+                    <input type="text" id="editServerName" required maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="editServerIcon">Server Icon</label>
+                    <input type="file" id="editServerIcon" accept="image/png, image/jpeg, image/jpg, image/webp">
+                    <small>Upload a new icon, or leave blank to keep the current one.</small>
+                </div>
+                <div class="form-group">
+                    <label for="editServerDescription">Description *</label>
+                    <textarea id="editServerDescription" required maxlength="200" rows="3"></textarea>
+                    <small><span id="editDescCount">0</span>/200 characters</small>
+                </div>
+                <div class="form-group">
+                    <label for="editServerCategory">Category *</label>
+                    <select id="editServerCategory" required>
+                        <option value="">Select a category</option>
+                        <option value="gaming">Gaming</option>
+                        <option value="art">Art & Design</option>
+                        <option value="tech">Technology</option>
+                        <option value="music">Music</option>
+                        <option value="education">Education</option>
+                        <option value="community">Community</option>
+                        <option value="entertainment">Entertainment</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editServerTags">Tags</label>
+                    <input type="text" id="editServerTags" placeholder="Gaming, Fun, Social" maxlength="100">
+                    <small>Separate tags with commas (max 5 tags)</small>
+                </div>
+                <div class="form-group">
+                    <label for="editInviteUrl">Invite URL *</label>
+                    <input type="url" id="editInviteUrl" required placeholder="https://stoat.example.com/invite/your-server">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeEditServerModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // Supabase Configuration
         const SUPABASE_URL = 'https://yuxmqthptkeguwwttxcq.supabase.co'; // e.g., https://xxxxx.supabase.co
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1eG1xdGhwdGtlZ3V3d3R0eGNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MjMwMjksImV4cCI6MjA4NjQ5OTAyOX0.KIX9kiuxty0sSnLwonowfCMC11Niy-eHLSk237chca8';
         
-        // Initialize empty servers array - will be filled from Supabase
-        let servers = [];
+        // Auth state
+        let currentUser = null;
+        let authToken = null;
+
+        // ─── AUTH FUNCTIONS ───────────────────────────────────────────
+
+        function showAuthModal() {
+            document.getElementById('authModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+            // Clear inputs
+            ['loginEmail','loginPassword','signupEmail','signupPassword'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            ['loginError','loginSuccess','signupError','signupSuccess'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.style.display = 'none'; el.textContent = ''; }
+            });
+        }
+
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach((t, i) => {
+                t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'signup'));
+            });
+            document.getElementById('loginPanel').classList.toggle('active', tab === 'login');
+            document.getElementById('signupPanel').classList.toggle('active', tab === 'signup');
+        }
+
+        function setAuthMessage(elId, msg, isError = true) {
+            const el = document.getElementById(elId);
+            el.textContent = msg;
+            el.style.display = msg ? 'block' : 'none';
+        }
+
+        async function signIn() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            setAuthMessage('loginError', '');
+            setAuthMessage('loginSuccess', '');
+
+            if (!email || !password) {
+                return setAuthMessage('loginError', 'Please enter your email and password.');
+            }
+
+            const btn = document.getElementById('loginBtn');
+            btn.textContent = 'Logging in...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
+                
+                authToken = data.access_token;
+                currentUser = data.user;
+                onAuthSuccess();
+                closeAuthModal();
+            } catch (err) {
+                setAuthMessage('loginError', err.message);
+            } finally {
+                btn.textContent = 'Login';
+                btn.disabled = false;
+            }
+        }
+
+        async function signUp() {
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            setAuthMessage('signupError', '');
+            setAuthMessage('signupSuccess', '');
+
+            if (!email || !password) {
+                return setAuthMessage('signupError', 'Please enter your email and password.');
+            }
+            if (password.length < 6) {
+                return setAuthMessage('signupError', 'Password must be at least 6 characters.');
+            }
+
+            const btn = document.getElementById('signupBtn');
+            btn.textContent = 'Creating account...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error_description || data.msg || 'Sign up failed');
+
+                // If email confirmation is disabled, we get a session immediately
+                if (data.access_token) {
+                    authToken = data.access_token;
+                    currentUser = data.user;
+                    onAuthSuccess();
+                    closeAuthModal();
+                } else {
+                    setAuthMessage('signupSuccess', '✅ Account created! Check your email to confirm, then log in.', false);
+                }
+            } catch (err) {
+                setAuthMessage('signupError', err.message);
+            } finally {
+                btn.textContent = 'Create Account';
+                btn.disabled = false;
+            }
+        }
+
+        async function signOut() {
+            try {
+                await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${authToken}` }
+                });
+            } catch (_) {}
+            currentUser = null;
+            authToken = null;
+            toggleUserDropdown(true);
+            document.getElementById('authControls').style.display = '';
+            document.getElementById('userMenu').style.display = 'none';
+        }
+
+        function onAuthSuccess() {
+            document.getElementById('authControls').style.display = 'none';
+            document.getElementById('userMenu').style.display = '';
+            const email = currentUser.email || '';
+            document.getElementById('userDisplayName').textContent = email.split('@')[0];
+            document.getElementById('userDropdownEmail').textContent = email;
+        }
+
+        function toggleUserDropdown(forceClose = false) {
+            const dd = document.getElementById('userDropdown');
+            if (forceClose) { dd.classList.remove('open'); return; }
+            dd.classList.toggle('open');
+        }
+
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('userMenu');
+            if (menu && !menu.contains(e.target)) {
+                toggleUserDropdown(true);
+            }
+        });
+
+        // ─── EDIT SERVER FUNCTIONS ────────────────────────────────────
+
+        function showEditServerModal() {
+            if (!currentServer) return;
+            closeServerDetailModal();
+
+            document.getElementById('editServerId').value = currentServer.id;
+            document.getElementById('editServerName').value = currentServer.name || '';
+            document.getElementById('editServerDescription').value = currentServer.description || '';
+            document.getElementById('editDescCount').textContent = (currentServer.description || '').length;
+            document.getElementById('editServerCategory').value = currentServer.category || '';
+            document.getElementById('editServerTags').value = (currentServer.tags || []).join(', ');
+            document.getElementById('editInviteUrl').value = currentServer.invite_url || '';
+
+            document.getElementById('editServerModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeEditServerModal() {
+            document.getElementById('editServerModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+            document.getElementById('editServerForm').reset();
+        }
+
+        // ─── MODAL HELPERS ────────────────────────────────────────────
+
+        async function handleEditServer(event) {
+            event.preventDefault();
+            if (!currentUser || !authToken) {
+                alert('You must be logged in to edit a server.');
+                return;
+            }
+
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            submitBtn.textContent = 'Saving...';
+            submitBtn.disabled = true;
+
+            try {
+                const id = document.getElementById('editServerId').value;
+                const name = document.getElementById('editServerName').value.trim();
+                const description = document.getElementById('editServerDescription').value.trim();
+                const category = document.getElementById('editServerCategory').value;
+                const tagsRaw = document.getElementById('editServerTags').value;
+                const invite_url = document.getElementById('editInviteUrl').value.trim();
+                const tags = tagsRaw.split(',').map(t => t.trim()).filter(t => t).slice(0, 5);
+                const iconFile = document.getElementById('editServerIcon').files[0];
+
+                let icon = currentServer.icon; // Keep existing icon by default
+
+                if (iconFile) {
+                    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+                    if (!validTypes.includes(iconFile.type)) {
+                        alert('❌ Invalid file type. Use PNG, JPG, or WebP.');
+                        return;
+                    }
+                    if (iconFile.size > 2 * 1024 * 1024) {
+                        alert('❌ File too large. Max 2MB.');
+                        return;
+                    }
+
+                    submitBtn.textContent = 'Uploading icon...';
+                    const timestamp = Date.now();
+                    const random = Math.random().toString(36).substring(7);
+                    const ext = iconFile.name.split('.').pop();
+                    const filename = `public/${timestamp}-${random}.${ext}`;
+
+                    const uploadResponse = await fetch(
+                        `${SUPABASE_URL}/storage/v1/object/server-icons/${filename}`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'apikey': SUPABASE_ANON_KEY,
+                                'Authorization': `Bearer ${authToken}`,
+                            },
+                            body: iconFile
+                        }
+                    );
+
+                    if (!uploadResponse.ok) {
+                        alert('❌ Failed to upload icon. Please try again.');
+                        return;
+                    }
+
+                    icon = `${SUPABASE_URL}/storage/v1/object/public/server-icons/${filename}`;
+                }
+
+                submitBtn.textContent = 'Saving changes...';
+
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/servers?id=eq.${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({ name, icon, description, category, tags, invite_url })
+                });
+
+                if (response.ok) {
+                    alert(`✅ "${name}" has been updated!`);
+                    closeEditServerModal();
+                    init();
+                } else {
+                    const error = await response.json();
+                    alert('❌ ' + (error.message || error.details || 'Failed to update server.'));
+                }
+            } catch (err) {
+                console.error('Edit error:', err);
+                alert('❌ Something went wrong. Please try again.');
+            } finally {
+                submitBtn.textContent = 'Save Changes';
+                submitBtn.disabled = false;
+            }
+        }
         
         // Fetch servers from Supabase
         async function fetchServers() {
@@ -1272,6 +1828,14 @@
             } else {
                 tagsContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 0.9rem;">No tags available</span>';
             }
+
+            // Show edit button only if current user owns this server
+            const editBtn = document.getElementById('editServerBtn');
+            if (currentUser && server.owner_id === currentUser.id) {
+                editBtn.style.display = '';
+            } else {
+                editBtn.style.display = 'none';
+            }
             
             // Show modal with animation
             const modal = document.getElementById('serverDetailModal');
@@ -1299,13 +1863,13 @@
         window.onclick = function(event) {
             const addModal = document.getElementById('addServerModal');
             const detailModal = document.getElementById('serverDetailModal');
+            const authModal = document.getElementById('authModal');
+            const editModal = document.getElementById('editServerModal');
             
-            if (event.target === addModal) {
-                closeAddServerModal();
-            }
-            if (event.target === detailModal) {
-                closeServerDetailModal();
-            }
+            if (event.target === addModal) closeAddServerModal();
+            if (event.target === detailModal) closeServerDetailModal();
+            if (event.target === authModal) closeAuthModal();
+            if (event.target === editModal) closeEditServerModal();
         }
 
         // Live preview updates
@@ -1318,6 +1882,11 @@
             // Character counter for description
             document.getElementById('serverDescription')?.addEventListener('input', function(e) {
                 document.getElementById('descCount').textContent = e.target.value.length;
+            });
+
+            // Edit modal description counter
+            document.getElementById('editServerDescription')?.addEventListener('input', function(e) {
+                document.getElementById('editDescCount').textContent = e.target.value.length;
             });
         }, 100);
 
@@ -1420,23 +1989,32 @@
                 // Submit server data
                 submitBtn.textContent = 'Submitting...';
 
+                const serverData = {
+                    name,
+                    icon,
+                    description,
+                    category,
+                    tags,
+                    invite_url,
+                    approved: true
+                };
+
+                // Attach owner if logged in
+                if (currentUser) {
+                    serverData.owner_id = currentUser.id;
+                }
+
+                const token = authToken || SUPABASE_ANON_KEY;
+
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/servers`, {
                     method: 'POST',
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                         'Prefer': 'return=minimal'
                     },
-                    body: JSON.stringify({
-                        name,
-                        icon,
-                        description,
-                        category,
-                        tags,
-                        invite_url,
-                        approved: true
-                    })
+                    body: JSON.stringify(serverData)
                 });
 
                 if (response.ok) {

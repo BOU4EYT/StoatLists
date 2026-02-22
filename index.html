@@ -1676,8 +1676,8 @@
 
         function renderServerCard(server) {
             // Make card clickable - shows detail modal before joining
-            // Use owner_id as unique identifier to look up server
-            const serverId = server.owner_id || server.id || Math.random().toString(36);
+            // Use server.id (unique per server) as the identifier, not owner_id
+            const serverId = server.id || Math.random().toString(36);
             const iconHtml = renderIcon(server.icon);
             
             return `
@@ -1833,8 +1833,8 @@
         let currentServer = null;
 
         function showServerDetailById(serverId) {
-            // Find server by owner_id or id
-            const server = servers.find(s => s.owner_id === serverId || s.id === serverId);
+            // Find server by its unique id only
+            const server = servers.find(s => s.id === serverId);
             if (server) {
                 showServerDetail(server);
             } else {
